@@ -16,6 +16,7 @@ contract smartPulse is ERC20 {
     struct User{
         uint256 level;
         uint256 lastEarned;
+        uint256 reward;
     }
  
     address owner;
@@ -28,35 +29,31 @@ contract smartPulse is ERC20 {
 
     }
 
-
-
-
     function mint(uint amount) public { 
 
         _mint(owner, amount * 10**decimals());
         amountMinted[msg.sender] = amount;
     }
 
+    function increaseLevel() public {
+        User storage user = lvl[msg.sender];
+        user.level += 1;
+        user.reward += user.level;
+    }
+
     function earn() public {
         User storage user = lvl[msg.sender];
-        uint256 stage = user.level += 1;
-        require(user.lastEarned < stage, "Level reward already earned!!!");
-        //user.lastEarned +=1;
+        
+        require(user.reward > 0, "No reward available for user");
+        uint256 stage = user.reward;
         _mint(msg.sender, stage * 10**decimals());
-        user.level = stage;
+        user.reward -= stage;
         user.lastEarned = stage;
         amountMinted[msg.sender] = stage;
 
         emit earnStage(msg.sender, user.level, user.lastEarned);
     }
 
-
-    function buyTOKEN(uint256 token) payable public {
-        uint256 price = 5;
-        require(msg.sender != address(0), "Zero Address!");
-        require( msg.value >= price * token , "Insufficient balance!!!");
     
-        _transfer(owner, msg.sender, token * 1e18);
-    }
     
 }
